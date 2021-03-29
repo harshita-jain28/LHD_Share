@@ -1,0 +1,260 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+</head>
+
+<body>
+    <div class="nav-bar">
+        <div class="nav-logo">
+            <img src="logo.png">
+        </div>
+        <div class="nav-link">
+            <ul>
+                <a href="#">
+                    <li>Home</li>
+                </a>
+                <a href="#">
+                    <li>About</li>
+                </a>
+                <a href="#">
+                    <li>Join Us</li>
+                </a>
+                <a href="#">
+                    <li>Members</li>
+                </a>
+
+            </ul>
+        </div>
+    </div>
+    <div class="parallax"> 
+    <canvas id="playArea"> </canvas>
+
+    <div class="title">
+        <h1>WIND IN <br> OUR <br> CHEST HAIR</h1>
+    </div>
+    <div id="stars-container">
+        <div id='stars'></div>
+        <div id='stars2'></div>
+        <div id='stars3'></div>
+  </div>
+</div>
+  <div>
+    <h2>About</h2>
+  </div>
+
+    <!--<div class="load-wrapper">
+        <div class='body'>
+            <span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </span>
+            <div class='base'>
+                <span></span>
+                <div class='face'></div>
+            </div>
+        </div>
+        <div class='longfazers'>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <h1>Redirecting</h1>
+    </div>
+
+    <script>
+        $(window).on("load", function () {
+            $(".load-wrapper").fadeout("slow");
+        });
+    </script>
+-->
+<script>
+window.requestAnimFrame = (function () {
+    return (
+      window.requestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      function (callback) {
+        window.setTimeout(callback, 1000 / 23);
+      }
+    );
+  })();
+  
+  $(function () {
+    $(window).resize(function () {
+      $("#playArea").attr({
+        width: $("body").width(),
+        height: $("body").height()
+      });
+  
+      width = $("body").width();
+      height = $("body").height();
+    });
+    $(window).resize();
+  });
+  
+  var Point = function () {
+    this._size = 0.5;
+    this._x = 0;
+    this._y = 0;
+    this._direction = 0;
+    this._velocity = 0;
+    this._distances = [];
+    this._neighboors = [];
+    this._randomization = 0;
+  
+    this.__collection = null;
+  
+    this._step = function (aCollection) {
+      var modifiedVelocity =
+        this._velocity * 1 * ((Math.random() * this._randomization + 1) / 10);
+      var direction = (Math.random() * 2) % 2 > 1 ? -1 : 1;
+  
+      this._direction =
+        this._direction * 1 + Math.random() * this._randomization * direction;
+      var radianAngle = (this._direction * Math.PI) / 180;
+  
+      this._x = this._x * 1 + modifiedVelocity * Math.cos(radianAngle) * 1;
+      this._y = this._y * 1 + modifiedVelocity * Math.sin(radianAngle) * 1;
+  
+      if (this._x > width) this._x = 0;
+      if (this._x < 0) this._x = width;
+      if (this._y > height) this._y = 0;
+      if (this._y < 0) this._y = height;
+  
+      this.__collection = aCollection;
+    };
+  
+    this._computeNeighboors = function () {
+      if (this.__collection == null) return;
+  
+      aCollection = this.__collection;
+      //compute the closest neighboor
+      this._distances = [];
+      for (i = 0; i < aCollection.length; i++) {
+        if (aCollection[i]._x != this._x && aCollection[i]._y != this._y) {
+          this._distances.push({
+            pointIndex: i,
+            pointObj: aCollection[i],
+            distance: Math.sqrt(
+              Math.pow(this._x - aCollection[i]._x, 2) +
+                Math.pow(this._y - aCollection[i]._y, 2)
+            )
+          });
+        }
+      }
+      this._distances.sort(function (a, b) {
+        defaultReturn = 0;
+        if (a.distance < b.distance) defaultReturn = -1;
+        if (a.distance > b.distance) defaultReturn = 1;
+        return defaultReturn;
+      });
+  
+      this._neighboors = this._distances.slice(0, 3);
+    };
+  
+    this.draw = function (context) {
+      this._computeNeighboors();
+  
+      //draw connection lines
+  
+      context.lineWidth = 0.25;
+      context.strokeStyle = "#f1c40f";
+  
+      context.beginPath();
+      for (i = 0; i < this._neighboors.length; i++) {
+        context.moveTo(this._x, this._y);
+        context.lineTo(
+          this._neighboors[i].pointObj._x,
+          this._neighboors[i].pointObj._y
+        );
+  
+        context.lineWidth = 0.1 + 5 / this._neighboors[i].distance;
+      }
+      context.closePath();
+  
+      context.stroke();
+  
+      context.beginPath();
+      context.arc(
+        this._x,
+        this._y,
+        this._size * this._velocity,
+        0,
+        2 * Math.PI,
+        false
+      );
+      context.fillStyle = "#f1c40f";
+      context.strokeStyle = "#f1c40f";
+      context.lineWidth = 0.25;
+      context.fill();
+      context.stroke();
+  
+      context.beginPath();
+      context.arc(this._x, this._y, this._size, 0, 2 * Math.PI, false);
+      context.fillStyle = "#f1c40f";
+      context.fill();
+  
+      //    ctx.fillText(this._direction.toFixed(2), this._x, this._y);
+    };
+  };
+  
+  var aPoints = [];
+  var can, ctx, interval, width, height;
+  var numPoints = 30;
+  /* var distanceTreshold = 100; */
+  
+  function init() {
+    can = document.getElementById("playArea");
+    ctx = can.getContext("2d");
+    width = $("body").width();
+    height = $("body").height();
+  
+    for (x = 0; x < numPoints; x++) {
+      var newPoint = new Point();
+      newPoint._size = (Math.random() * (3 - 0.5) + 0.5).toFixed(2);
+      newPoint._x = (Math.random() * width).toFixed(0);
+      newPoint._y = (Math.random() * height).toFixed(0);
+      newPoint._direction = (Math.random() * 360).toFixed(2);
+      newPoint._velocity = (Math.random() * (4 - 0.1) + 0.2).toFixed(2);
+      newPoint._randomization = (Math.random() * (10 - 0) + 0).toFixed(2);
+      aPoints.push(newPoint);
+    }
+  
+    animate();
+  }
+  
+  function animate() {
+    for (x = 0; x < numPoints; x++) {
+      aPoints[x]._step(aPoints);
+    }
+    requestAnimFrame(animate);
+    draw();
+  }
+  
+  function draw() {
+    ctx.save();
+  
+    ctx.clearRect(0, 0, width, height);
+  
+    for (x = 0; x < numPoints; x++) {
+      aPoints[x].draw(ctx);
+    }
+  
+    ctx.restore();
+  }
+  
+  init();
+</script>
+</body>
+
+</html>
